@@ -188,6 +188,14 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
 .navbtn.active{color:var(--navy)}
 .navbtn svg{width:22px;height:22px}
 
+/* Stars rating */
+.stars{display:flex;gap:4px;margin:6px 0 2px}
+.star{border:0;background:none;padding:4px;font-size:28px;line-height:1;cursor:pointer;color:var(--line);transition:color .15s,transform .1s}
+.star.on{color:var(--accent)}
+.star:active{transform:scale(1.15)}
+.crit-card{background:var(--surface-2);border-radius:12px;padding:12px;margin-bottom:10px}
+.crit-card label{margin-bottom:2px}
+
 /* Utility */
 .center{text-align:center}
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mb0{margin-bottom:0}
@@ -322,6 +330,20 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
     </div>
   </div>
 
+  <!-- FEEDBACK VIEW -->
+  <div id="view-feedback" class="view">
+    <div class="topbar">
+      <button type="button" class="back" data-nav="home" aria-label="Back">←</button>
+      <h1 id="fb-title"></h1>
+      <div class="tools"></div>
+    </div>
+    <div class="view-scroll">
+      <p class="lede" id="fb-lede"></p>
+      <div class="card" id="fb-form"></div>
+      <div class="card hidden" id="fb-thanks"></div>
+    </div>
+  </div>
+
   <!-- Bottom nav -->
   <nav class="bottomnav" id="bottomnav">
     <button type="button" class="navbtn" data-nav="home" id="nav-home">
@@ -336,6 +358,10 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0V4zM5 4H3v2a3 3 0 003 3M19 4h2v2a3 3 0 01-3 3"/></svg>
       <span id="nav-lb-l"></span>
     </button>
+    <button type="button" class="navbtn" data-nav="feedback" id="nav-fb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3l-5.4 3 1.4-6.1L3 9.7l6.2-.5L12 3.5l2.8 5.7 6.2.5-5 4.5 1.4 6.1z"/></svg>
+      <span id="nav-fb-l"></span>
+    </button>
   </nav>
 </div>
 
@@ -346,10 +372,30 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
 var DRAFT = true;
 var EVENT = { date:'Wed 25 Nov 2026', name:'Cultural Expedition' };
 
-/* Confirmation password students type (keep short). Change before event day. */
-var CONFIRM_PASSWORD = 'VISION';   // case-insensitive
+/* Per-class confirmation passwords (case-insensitive). Students of that class use their own password.
+   Change these before event day and tell only the relevant presenting groups. */
+var PASSWORDS = {
+  '6A': 'MAPS1',
+  '6B': 'MAPS2',
+  '6C': 'MAPS3',
+  '7A': 'NATURE1',
+  '7B': 'NATURE2',
+  '8A': 'READY1',
+  '8B': 'READY2',
+  '9A': 'HOME1',
+  '9B': 'HOME2',
+  '9C': 'HOME3'
+};
 
-/* Optional expected keywords (lowercase). Leave empty [] for free judgement by students. */
+/* Feedback criteria — add or remove items freely. Each needs an id and en/id labels. */
+var FEEDBACK_CRITERIA = [
+  { id: 'clarity',   en: 'Clarity of explanations',           id_label: 'Kejelasan penjelasan' },
+  { id: 'engagement',en: 'How engaging / interesting it was', id_label: 'Seberapa menarik' },
+  { id: 'welcome',   en: 'How welcoming the students were',   id_label: 'Sikap ramah siswa' },
+  { id: 'overall',   en: 'Overall experience',                id_label: 'Pengalaman secara keseluruhan' }
+];
+
+/* Optional expected keywords (lowercase). Leave empty for free judgement by students. */
 var EXPECTED = {
   // '6A': ['sea','trade','boat','perahu'],
 };
@@ -415,7 +461,7 @@ var POS = {
    Paste your Apps Script Web App URL after deploying.
    Leave empty to run fully offline (progress only on this phone).
    ============================================================ */
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjAYAEgFV6zUsH-bDDDy21e-LdjTbGURQ2unmJQ2Dx3yWHirvsHxHTIpvBDxQQRa2XnA/exec';   // e.g. 'https://script.google.com/macros/s/AKfycbwjAYAEgFV6zUsH-bDDDy21e-LdjTbGURQ2unmJQ2Dx3yWHirvsHxHTIpvBDxQQRa2XnA/exec'
+var APPS_SCRIPT_URL = '';   // e.g. 'https://script.google.com/macros/s/XXXX/exec'
 var EVENT_TOKEN = 'myp-visioners-2026';  // simple shared secret, change it
 
 /* ============================================================
@@ -442,9 +488,9 @@ var T = {
   ask:'Booklet question', roomTbd:'Room TBC', soon:'Details coming soon.',
   boothNote:'Each class has booths. You only need the answer to the question.',
   yourAnswer:'Your answer (optional notes)', handPhone:'Hand the phone to a student',
-  studentPass:'Student confirmation password', confirm:'Confirm & unlock letter',
+  studentPass:'Password for this class (student only)', confirm:'Confirm & unlock letter',
   collected:'Letter collected!', undo:'Undo (staff only)', letterAt:'Letter',
-  wrongPass:'Wrong password. Ask a student to try again.', needAnswer:'Please write something first (or ask student to confirm).',
+  wrongPass:'Wrong password for this class. Ask a student from this class to try again.', needAnswer:'Please write something first (or ask student to confirm).',
   already:'Already collected', prev:'Previous', nextBtn:'Next',
   lbTitle:'Leaderboard', lbLede:'Most letters collected (live when cloud is on).',
   lbLoading:'Loading…', lbEmpty:'No data yet — be the first!', lbNote:'Shows parent + child. Refreshes automatically.',
@@ -452,7 +498,11 @@ var T = {
   saved:'Saved on this phone only.', reset:'Reset my progress', resetSure:'Tap again to clear',
   syncOn:'Cloud sync on', syncOff:'Offline mode', syncErr:'Sync error — still saved locally',
   of:'of', stopWord:'Stop', mark:'Not collected', back:'Back',
-  startVenue:'START', venue:'Performance venue', venueSub:'Watch your child\'s class first if you can.'
+  startVenue:'START', venue:'Performance venue', venueSub:'Watch your child\'s class first if you can.',
+  feedback:'Feedback', fbTitle:'Your feedback', fbLede:'How was the Cultural Expedition? Tap stars for each item (1–5).',
+  fbComment:'Anything else you\'d like to share? (optional)', fbSubmit:'Send feedback',
+  fbThanks:'Thank you! Your feedback has been recorded.', fbAgain:'Submit another response',
+  fbNeedAll:'Please rate all items before sending.', fbSent:'Feedback sent'
  },
  id:{
   kicker:'VISit the World · MYP · '+EVENT.date,
@@ -474,9 +524,9 @@ var T = {
   ask:'Pertanyaan buklet', roomTbd:'Ruang segera dikonfirmasi', soon:'Detail segera menyusul.',
   boothNote:'Setiap kelas punya booth. Cukup temukan jawaban pertanyaan.',
   yourAnswer:'Jawaban Anda (catatan opsional)', handPhone:'Serahkan ponsel ke siswa',
-  studentPass:'Kata sandi konfirmasi siswa', confirm:'Konfirmasi & buka huruf',
+  studentPass:'Kata sandi kelas ini (hanya siswa)', confirm:'Konfirmasi & buka huruf',
   collected:'Huruf terkumpul!', undo:'Batalkan (staf)', letterAt:'Huruf',
-  wrongPass:'Kata sandi salah. Minta siswa coba lagi.', needAnswer:'Tulis sesuatu dulu (atau minta siswa konfirmasi).',
+  wrongPass:'Kata sandi salah untuk kelas ini. Minta siswa dari kelas ini yang mencoba.', needAnswer:'Tulis sesuatu dulu (atau minta siswa konfirmasi).',
   already:'Sudah terkumpul', prev:'Sebelumnya', nextBtn:'Berikutnya',
   lbTitle:'Papan peringkat', lbLede:'Huruf terbanyak (langsung jika cloud aktif).',
   lbLoading:'Memuat…', lbEmpty:'Belum ada data — jadilah yang pertama!', lbNote:'Menampilkan orang tua + anak. Diperbarui otomatis.',
@@ -484,7 +534,11 @@ var T = {
   saved:'Hanya tersimpan di ponsel ini.', reset:'Atur ulang', resetSure:'Ketuk lagi untuk hapus',
   syncOn:'Sinkronisasi cloud aktif', syncOff:'Mode offline', syncErr:'Gagal sinkron — tetap tersimpan lokal',
   of:'dari', stopWord:'Pemberhentian', mark:'Belum', back:'Kembali',
-  startVenue:'MULAI', venue:'Tempat pertunjukan', venueSub:'Tonton kelas anak Anda lebih dulu jika bisa.'
+  startVenue:'MULAI', venue:'Tempat pertunjukan', venueSub:'Tonton kelas anak Anda lebih dulu jika bisa.',
+  feedback:'Masukan', fbTitle:'Masukan Anda', fbLede:'Bagaimana Ekspedisi Budaya ini? Ketuk bintang untuk tiap butir (1–5).',
+  fbComment:'Ada yang ingin ditambahkan? (opsional)', fbSubmit:'Kirim masukan',
+  fbThanks:'Terima kasih! Masukan Anda sudah dicatat.', fbAgain:'Kirim masukan lain',
+  fbNeedAll:'Mohon nilai semua butir sebelum mengirim.', fbSent:'Masukan terkirim'
  }
 };
 
@@ -499,7 +553,9 @@ var state = {
   sel:null,
   filter:'all',
   user:null,             // {parent, child, grade, className, sessionId, registeredAt}
-  syncStatus:'off'       // 'on' | 'off' | 'err'
+  syncStatus:'off',      // 'on' | 'off' | 'err'
+  fbRatings:{},          // { criterionId: 1-5 }
+  fbSubmitted:false
 };
 try{
   var raw = localStorage.getItem(KEY);
@@ -509,12 +565,13 @@ try{
       if(p.collected) state.collected = p.collected;
       if(p.lang==='en'||p.lang==='id') state.lang = p.lang;
       if(p.user && p.user.parent) { state.user = p.user; state.view = 'home'; }
+      if(p.fbSubmitted) state.fbSubmitted = true;
     }
   }
 }catch(e){}
 
 function save(){
-  try{ localStorage.setItem(KEY, JSON.stringify({lang:state.lang, collected:state.collected, user:state.user})); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:state.lang, collected:state.collected, user:state.user, fbSubmitted:state.fbSubmitted})); }catch(e){}
 }
 function t(k){ var v=T[state.lang][k]; return typeof v==='function' ? v : v; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -621,7 +678,7 @@ function mapSvg(){
    ============================================================ */
 function setView(name){
   state.view = name;
-  ['login','home','explore','stop','leaderboard'].forEach(function(v){
+  ['login','home','explore','stop','leaderboard','feedback'].forEach(function(v){
     var el=document.getElementById('view-'+v);
     if(el) el.classList.toggle('active', v===name);
   });
@@ -678,6 +735,7 @@ function renderHome(){
   document.getElementById('nav-home-l').textContent = t('home');
   document.getElementById('nav-explore-l').textContent = t('explore');
   document.getElementById('nav-lb-l').textContent = t('leaderboard');
+  document.getElementById('nav-fb-l').textContent = t('feedback');
   updateSyncUI();
 }
 
@@ -772,6 +830,36 @@ function renderLeaderboard(){
   });
 }
 
+function renderFeedback(){
+  document.getElementById('fb-title').textContent = t('fbTitle');
+  document.getElementById('fb-lede').textContent = t('fbLede');
+  var form = document.getElementById('fb-form');
+  var thanks = document.getElementById('fb-thanks');
+  if(state.fbSubmitted && !state._fbForce){
+    form.classList.add('hidden');
+    thanks.classList.remove('hidden');
+    thanks.innerHTML = '<p style="margin:0 0 12px;font-weight:700;text-align:center">'+esc(t('fbThanks'))+'</p>'+
+      '<button type="button" class="btn ghost block" id="btn-fb-again">'+esc(t('fbAgain'))+'</button>';
+    return;
+  }
+  form.classList.remove('hidden');
+  thanks.classList.add('hidden');
+  var lg = state.lang;
+  var h = FEEDBACK_CRITERIA.map(function(c){
+    var val = state.fbRatings[c.id] || 0;
+    var stars = '';
+    for(var i=1;i<=5;i++){
+      stars += '<button type="button" class="star'+(i<=val?' on':'')+'" data-star="'+c.id+':'+i+'" aria-label="'+i+'">★</button>';
+    }
+    var label = lg==='id' ? (c.id_label || c.en) : c.en;
+    return '<div class="crit-card"><label>'+esc(label)+'</label><div class="stars">'+stars+'</div></div>';
+  }).join('');
+  h += '<div class="field"><label for="fb-comment">'+esc(t('fbComment'))+'</label><textarea id="fb-comment" rows="3"></textarea></div>';
+  h += '<button type="button" class="btn accent block" id="btn-fb-submit">'+esc(t('fbSubmit'))+'</button>';
+  h += '<p class="status-msg" id="fb-msg"></p>';
+  form.innerHTML = h;
+}
+
 function render(){
   document.documentElement.lang = state.lang;
   if(state.view==='login') renderLogin();
@@ -779,13 +867,14 @@ function render(){
   else if(state.view==='explore') renderExplore();
   else if(state.view==='stop') renderStop();
   else if(state.view==='leaderboard') renderLeaderboard();
+  else if(state.view==='feedback') renderFeedback();
 }
 
 /* ============================================================
    EVENTS
    ============================================================ */
 document.addEventListener('click', function(e){
-  var el = e.target.closest('[data-nav],[data-go],[data-filter],[data-grade],[data-lang],[data-confirm],[data-undo],#btn-start,#lang-en,#lang-id,#btn-refresh-lb,.pin');
+  var el = e.target.closest('[data-nav],[data-go],[data-filter],[data-grade],[data-lang],[data-confirm],[data-undo],[data-star],#btn-start,#lang-en,#lang-id,#btn-refresh-lb,#btn-fb-submit,#btn-fb-again,.pin');
   if(!el) return;
 
   if(el.id==='lang-en'||el.id==='lang-id'||el.hasAttribute('data-lang')){
@@ -813,6 +902,7 @@ document.addEventListener('click', function(e){
   }
   if(el.hasAttribute('data-nav')){
     var v=el.getAttribute('data-nav');
+    if(v==='feedback'){ state._fbForce=false; }
     setView(v); render(); return;
   }
   if(el.hasAttribute('data-filter')){
@@ -821,7 +911,7 @@ document.addEventListener('click', function(e){
   if(el.hasAttribute('data-go')){
     var id=el.getAttribute('data-go');
     if(!id) return;
-    if(id==='hall'){ /* show schedule on home for now */ setView('home'); render(); return; }
+    if(id==='hall'){ setView('home'); render(); return; }
     state.sel=id; setView('stop'); render(); return;
   }
   if(el.classList.contains('pin')){
@@ -833,12 +923,12 @@ document.addEventListener('click', function(e){
     var sid=el.getAttribute('data-confirm');
     var pass=(document.getElementById('pass').value||'').trim();
     var msg=document.getElementById('confirm-msg');
-    if(pass.toUpperCase()!==CONFIRM_PASSWORD.toUpperCase()){
+    var expected = (PASSWORDS[sid]||'').toUpperCase();
+    if(!expected || pass.toUpperCase()!==expected){
       msg.textContent=t('wrongPass'); msg.className='status-msg err'; return;
     }
     state.collected[sid]=new Date().toISOString();
     save(); syncProgress(); renderStop();
-    // also refresh home tiles later
     return;
   }
   if(el.hasAttribute('data-undo')){
@@ -847,6 +937,61 @@ document.addEventListener('click', function(e){
     save(); syncProgress(); renderStop(); return;
   }
   if(el.id==='btn-refresh-lb'){ renderLeaderboard(); return; }
+
+  /* Star rating */
+  if(el.hasAttribute('data-star')){
+    var parts = el.getAttribute('data-star').split(':');
+    var cid = parts[0], val = +parts[1];
+    state.fbRatings[cid] = val;
+    // update stars visually without full re-render
+    var card = el.closest('.crit-card');
+    if(card){
+      card.querySelectorAll('.star').forEach(function(s){
+        var sv = +s.getAttribute('data-star').split(':')[1];
+        s.classList.toggle('on', sv <= val);
+      });
+    }
+    return;
+  }
+  if(el.id==='btn-fb-submit'){
+    var msg = document.getElementById('fb-msg');
+    var missing = FEEDBACK_CRITERIA.some(function(c){ return !state.fbRatings[c.id]; });
+    if(missing){ msg.textContent=t('fbNeedAll'); msg.className='status-msg err'; return; }
+    var comment = (document.getElementById('fb-comment').value||'').trim();
+    var payload = {
+      sessionId: state.user ? state.user.sessionId : '',
+      parent: state.user ? state.user.parent : '',
+      child: state.user ? state.user.child : '',
+      grade: state.user ? state.user.grade : '',
+      ratings: state.fbRatings,
+      comment: comment,
+      at: new Date().toISOString()
+    };
+    // save locally
+    try{
+      var fbKey = KEY + '-feedbacks';
+      var list = JSON.parse(localStorage.getItem(fbKey)||'[]');
+      list.push(payload);
+      localStorage.setItem(fbKey, JSON.stringify(list));
+    }catch(err){}
+    // cloud
+    if(APPS_SCRIPT_URL){
+      api('feedback', payload).then(function(res){
+        state.syncStatus = res && res.ok ? 'on' : (res && res.offline ? 'off' : 'err');
+      });
+    }
+    state.fbSubmitted = true;
+    state._fbForce = false;
+    save();
+    renderFeedback();
+    return;
+  }
+  if(el.id==='btn-fb-again'){
+    state.fbRatings = {};
+    state._fbForce = true;
+    renderFeedback();
+    return;
+  }
 });
 
 /* auto-poll leaderboard when visible */
