@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Cultural Expedition Map</title>
+<meta name="theme-color" content="#24384F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<style>
+:root{
+  --bg:#F2F5F9; --surface:#FFFFFF; --surface-2:#E9EEF4; --ink:#1B2733; --muted:#58657A; --line:#CBD5E1;
+  --navy:#24384F; --accent:#EF820C; --accent-ink:#1B2733; --accent-soft:#FDEBD3;
+  --sea:#DCE8F2; --sea-line:#BFD0E0; --route:#24384F;
+  --g1:#1F8F8C; --g2:#5E9A32; --g3:#C4533F; --g4:#6657B8;
+  --ok:#1F8F8C; --danger:#C4533F;
+  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --island-op:.28;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1724; --surface:#15253A; --surface-2:#1C3049; --ink:#E8EEF5; --muted:#9FB0C4; --line:#2B405A;
+    --navy:#9DB8D6; --accent:#F79A2F; --accent-ink:#13202F; --accent-soft:#3A2C17;
+    --sea:#0F2033; --sea-line:#1C3550; --route:#C8D8EA;
+    --g1:#45C2BE; --g2:#8CC55E; --g3:#E5806C; --g4:#9A8CE6; --ok:#45C2BE; --danger:#E5806C;
+    --island-op:.34; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1724; --surface:#15253A; --surface-2:#1C3049; --ink:#E8EEF5; --muted:#9FB0C4; --line:#2B405A;
+  --navy:#9DB8D6; --accent:#F79A2F; --accent-ink:#13202F; --accent-soft:#3A2C17;
+  --sea:#0F2033; --sea-line:#1C3550; --route:#C8D8EA;
+  --g1:#45C2BE; --g2:#8CC55E; --g3:#E5806C; --g4:#9A8CE6; --ok:#45C2BE; --danger:#E5806C;
+  --island-op:.34; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;
+  padding:0; -webkit-tap-highlight-color:transparent; overflow-x:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.g1{--gc:var(--g1)} .g2{--gc:var(--g2)} .g3{--gc:var(--g3)} .g4{--gc:var(--g4)}
+
+/* App shell */
+#app{min-height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto;position:relative}
+.view{display:none;flex:1;flex-direction:column;padding:16px;padding-bottom:calc(16px + var(--safe-b));min-height:0}
+.view.active{display:flex}
+.view-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + var(--safe-t));
+  background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topbar h1{font-size:17px;font-weight:800;margin:0;flex:1;line-height:1.2}
+.topbar .back{border:0;background:var(--surface-2);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;cursor:pointer}
+.tools{display:flex;gap:6px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:5px 11px;font-weight:700;font-size:12px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--surface)}
+.draft{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--accent-soft);color:var(--ink);border-radius:6px;padding:3px 7px}
+
+/* Typography helpers */
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.lede{margin:0;color:var(--muted);font-size:14px}
+h2.section{font-size:15px;font-weight:700;margin:0 0 8px}
+
+/* Cards & buttons */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px}
+.btn.block{width:100%}
+.btn.primary{background:var(--navy);color:var(--surface)}
+.btn.accent{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .btn{flex:1 1 120px}
+
+/* Forms */
+label{display:block;font-size:13px;font-weight:600;margin:0 0 4px;color:var(--muted)}
+.field{margin-bottom:14px}
+input[type="text"],input[type="password"],textarea,select{
+  width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  font-size:16px; /* prevent iOS zoom */
+}
+textarea{min-height:90px;resize:vertical}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* Word tiles */
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+@media(min-width:400px){.tiles{grid-template-columns:repeat(10,1fr)}}
+.tile{aspect-ratio:1/1.1;border-radius:10px;border:2px dashed var(--line);background:var(--surface-2);
+  display:grid;place-items:center;font-weight:800;font-size:clamp(16px,5vw,22px);color:var(--muted);position:relative}
+.tile small{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted)}
+.tile.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);animation:pop .35s ease-out}
+.tile.on small{color:var(--accent-ink)}
+@keyframes pop{0%{transform:scale(.85)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+.banner{display:none;background:var(--accent-soft);border-radius:12px;padding:12px;font-weight:700;text-align:center;margin-top:10px}
+.banner.show{display:block}
+
+/* Phases / quick actions */
+.phases{display:grid;gap:8px;margin-bottom:12px}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:center;text-align:left;width:100%;cursor:pointer}
+.phase i{flex:none;width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--surface);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:14px}
+.phase b{display:block;font-size:14px}
+.phase span{font-size:12px;color:var(--muted)}
+.phase .time{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--ink);margin-left:auto;white-space:nowrap}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--gc)}
+
+/* Map */
+.mapcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:12px}
+svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(--sea)}
+.sea-line{stroke:var(--sea-line);stroke-width:1;stroke-dasharray:2 7;fill:none}
+.island{fill:var(--gc);fill-opacity:var(--island-op);stroke:var(--gc);stroke-width:2;stroke-dasharray:6 6;stroke-opacity:.7}
+.routeline{fill:none;stroke:var(--route);stroke-width:2.5;stroke-dasharray:2 8;stroke-linecap:round;opacity:.6}
+.pin{cursor:pointer}
+.pin.dim{opacity:.3}
+.pin .ring{fill:var(--surface);stroke:var(--gc);stroke-width:5}
+.pin.done .ring{fill:var(--accent)}
+.pin .code{font-family:var(--font);font-weight:800;font-size:15px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin.done .code{fill:var(--accent-ink)}
+.pin .badge{fill:var(--navy);stroke:var(--surface);stroke-width:2.5}
+.pin .bl{font-family:var(--mono);font-weight:600;font-size:12px;fill:var(--surface);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin.sel .ring{stroke-width:8}
+.pin .selring{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:3 3;opacity:0}
+.pin.sel .selring{opacity:1}
+.pin .pulse{fill:none;stroke:var(--accent);stroke-width:2.5;opacity:0}
+.pin.next .pulse{animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{r:22;opacity:.85}100%{r:40;opacity:0}}
+.hall .box{fill:var(--navy);stroke:var(--surface);stroke-width:2.5}
+.hall.sel .box{stroke:var(--accent);stroke-width:3.5}
+.hall text{fill:var(--surface);font-family:var(--mono);font-weight:600;font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none;letter-spacing:.05em}
+.compass{fill:none;stroke:var(--muted);stroke-width:1.2;opacity:.65}
+.compass-t{fill:var(--muted);font-family:var(--mono);font-size:11px;text-anchor:middle}
+.legend{font-size:12px;color:var(--muted);margin:6px 0 0}
+
+/* Stop list */
+.stoplist{display:grid;gap:6px}
+.stopitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:12px;align-items:center;cursor:pointer;text-align:left;width:100%}
+.stopitem:active{background:var(--surface-2)}
+.stopitem .lc{flex:none;width:40px;height:40px;border-radius:50%;border:4px solid var(--gc);display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--surface)}
+.stopitem.done .lc{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.stopitem .lt b{display:block;font-size:13px}
+.stopitem .lt span{font-size:11px;color:var(--muted)}
+
+/* Panel / stop detail */
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.tag i{width:10px;height:10px;border-radius:50%;background:var(--gc)}
+.panel h2{margin:0 0 4px;font-size:20px;font-weight:800;line-height:1.2}
+.panel .sub{margin:0 0 8px;color:var(--muted);font-size:14px}
+.askbox{background:var(--accent-soft);border-radius:12px;padding:12px;margin:12px 0}
+.askbox h3{margin:0 0 6px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:6px;list-style:none;padding:0;margin:0}
+.pairs li{background:var(--surface-2);border-radius:8px;padding:8px;font-weight:600;font-size:13px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;list-style:none;padding:0;margin:0}
+.slots li{background:var(--surface-2);border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:12px;font-weight:600}
+.slots li b{font-family:var(--font);font-weight:800;margin-right:4px}
+.soon{background:var(--surface-2);border-radius:10px;padding:10px;color:var(--muted);font-size:13px;margin:8px 0}
+.confirm-box{border:2px dashed var(--line);border-radius:12px;padding:14px;margin-top:12px;background:var(--surface-2)}
+.confirm-box.unlocked{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface))}
+.status-msg{font-size:13px;margin-top:8px;font-weight:600}
+.status-msg.ok{color:var(--ok)}
+.status-msg.err{color:var(--danger)}
+
+/* Leaderboard */
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.lb-row:last-child{border-bottom:0}
+.lb-rank{font-family:var(--mono);font-weight:700;width:28px;text-align:center;color:var(--muted)}
+.lb-rank.top{color:var(--accent);font-size:18px}
+.lb-info{flex:1;min-width:0}
+.lb-info b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-info span{font-size:12px;color:var(--muted)}
+.lb-score{font-family:var(--mono);font-weight:700;font-size:16px}
+
+/* Bottom nav (when logged in) */
+.bottomnav{display:none;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + var(--safe-b));
+  position:sticky;bottom:0;z-index:20;justify-content:space-around}
+.bottomnav.show{display:flex}
+.navbtn{border:0;background:none;padding:8px 12px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px}
+.navbtn.active{color:var(--navy)}
+.navbtn svg{width:22px;height:22px}
+
+/* Utility */
+.center{text-align:center}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mb0{margin-bottom:0}
+.muted{color:var(--muted)}
+.hidden{display:none!important}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.sync-dot.ok{background:var(--ok)}.sync-dot.off{background:var(--muted)}.sync-dot.err{background:var(--danger)}
+.foot-note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;padding-bottom:8px}
+
+@media (prefers-reduced-motion:reduce){.tile.on,.pin.next .pulse{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- LOGIN VIEW -->
+  <div id="view-login" class="view active">
+    <div class="view-scroll">
+      <div style="padding-top:12px">
+        <p class="kicker" id="login-kicker"></p>
+        <h1 style="font-size:28px;font-weight:800;margin:0 0 6px" id="login-title"></h1>
+        <p class="lede" id="login-lede"></p>
+      </div>
+      <div class="card mt12">
+        <div class="field">
+          <label for="in-parent" id="lbl-parent"></label>
+          <input type="text" id="in-parent" autocomplete="name" placeholder="">
+        </div>
+        <div class="field">
+          <label for="in-child" id="lbl-child"></label>
+          <input type="text" id="in-child" autocomplete="off" placeholder="">
+        </div>
+        <div class="field">
+          <label id="lbl-grade"></label>
+          <div class="btn-row" id="grade-btns"></div>
+        </div>
+        <div class="field" id="class-field" style="display:none">
+          <label for="in-class" id="lbl-class"></label>
+          <select id="in-class"></select>
+        </div>
+        <button type="button" class="btn primary block" id="btn-start"></button>
+        <p class="hint center mt8" id="login-hint"></p>
+      </div>
+      <div class="tools center mt12">
+        <div class="seg" role="group" aria-label="Language">
+          <button type="button" id="lang-en" aria-pressed="true">EN</button>
+          <button type="button" id="lang-id" aria-pressed="false">ID</button>
+        </div>
+      </div>
+      <p class="foot-note" id="login-foot"></p>
+    </div>
+  </div>
+
+  <!-- HOME VIEW -->
+  <div id="view-home" class="view">
+    <div class="topbar">
+      <h1 id="home-title"></h1>
+      <div class="tools">
+        <span class="draft" id="draft-badge" hidden></span>
+        <div class="seg">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="id">ID</button>
+        </div>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <p class="lede" id="home-greet" style="margin-bottom:12px"></p>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+          <h2 class="section mb0" id="wh"></h2>
+          <span class="count" id="count" style="font-family:var(--mono);font-weight:600;font-size:13px;color:var(--muted)"></span>
+        </div>
+        <div class="tiles" id="tiles"></div>
+        <div class="banner" id="done-banner" role="status"></div>
+        <p class="hint mt8" id="rule"></p>
+      </div>
+      <div class="phases" id="phases"></div>
+      <div class="card" id="next-card"></div>
+      <div class="btn-row">
+        <button type="button" class="btn primary" data-nav="explore" id="btn-explore"></button>
+        <button type="button" class="btn ghost" data-nav="leaderboard" id="btn-lb"></button>
+      </div>
+      <p class="foot-note"><span class="sync-dot" id="sync-dot"></span><span id="sync-label"></span></p>
+    </div>
+  </div>
+
+  <!-- EXPLORE VIEW -->
+  <div id="view-explore" class="view">
+    <div class="topbar">
+      <button type="button" class="back" data-nav="home" aria-label="Back">←</button>
+      <h1 id="explore-title"></h1>
+      <div class="tools">
+        <div class="seg">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="id">ID</button>
+        </div>
+      </div>
+    </div>
+    <div class="view-scroll">
+      <div class="chips" id="chips"></div>
+      <div class="mapcard">
+        <div id="mapwrap"></div>
+        <p class="legend" id="legend"></p>
+      </div>
+      <h2 class="section" id="list-title"></h2>
+      <div class="stoplist" id="stoplist"></div>
+    </div>
+  </div>
+
+  <!-- STOP DETAIL VIEW -->
+  <div id="view-stop" class="view">
+    <div class="topbar">
+      <button type="button" class="back" data-nav="explore" aria-label="Back">←</button>
+      <h1 id="stop-top-title"></h1>
+      <div class="tools"></div>
+    </div>
+    <div class="view-scroll panel" id="stop-panel"></div>
+  </div>
+
+  <!-- LEADERBOARD VIEW -->
+  <div id="view-leaderboard" class="view">
+    <div class="topbar">
+      <button type="button" class="back" data-nav="home" aria-label="Back">←</button>
+      <h1 id="lb-title"></h1>
+      <button type="button" class="btn ghost" style="padding:6px 10px;min-height:0;font-size:12px" id="btn-refresh-lb">↻</button>
+    </div>
+    <div class="view-scroll">
+      <p class="lede" id="lb-lede"></p>
+      <div class="card" id="lb-body">
+        <p class="center muted" id="lb-loading"></p>
+      </div>
+      <p class="foot-note" id="lb-note"></p>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="bottomnav" id="bottomnav">
+    <button type="button" class="navbtn" data-nav="home" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg>
+      <span id="nav-home-l"></span>
+    </button>
+    <button type="button" class="navbtn" data-nav="explore" id="nav-explore">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+      <span id="nav-explore-l"></span>
+    </button>
+    <button type="button" class="navbtn" data-nav="leaderboard" id="nav-lb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 01-10 0V4zM5 4H3v2a3 3 0 003 3M19 4h2v2a3 3 0 01-3 3"/></svg>
+      <span id="nav-lb-l"></span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ============================================================
+   CONTENT — edit here (teachers)
+   ============================================================ */
+var DRAFT = true;
+var EVENT = { date:'Wed 25 Nov 2026', name:'Cultural Expedition' };
+
+/* Confirmation password students type (keep short). Change before event day. */
+var CONFIRM_PASSWORD = 'VISION';   // case-insensitive
+
+/* Optional expected keywords (lowercase). Leave empty [] for free judgement by students. */
+var EXPECTED = {
+  // '6A': ['sea','trade','boat','perahu'],
+};
+
+var LETTERS = 'VISIONERS!';
+var N = LETTERS.length;
+
+var GR = {6:['08:00','08:30'],7:['08:40','09:00'],8:['09:10','09:30'],9:['09:40','10:10']};
+var PERF = [['6A','08:00'],['6B','08:10'],['6C','08:20'],['7A','08:40'],['7B','08:50'],['8A','09:10'],['8B','09:20'],['9A','09:40'],['9B','09:50'],['9C','10:00']];
+var CLASSES = {6:['A','B','C'],7:['A','B'],8:['A','B'],9:['A','B','C']};
+
+var ACT = {
+  museum:{en:'Museum',id:'Museum'}, museumD:{en:'Museum (digital)',id:'Museum (digital)'},
+  diorama:{en:'Diorama',id:'Diorama'}, hazard:{en:'Hazard map',id:'Peta bahaya'},
+  guess:{en:'Guessing card',id:'Kartu tebak'}, wall:{en:'Opinion wall',id:'Dinding opini'}
+};
+var ZONE = {
+  1:{name:{en:'MYP 1 · Maps',id:'MYP 1 · Peta'}, idea:{en:'Our Cultural Atlas: maps carry a perspective',id:'Atlas Budaya Kita: peta membawa sudut pandang'}},
+  2:{name:{en:'MYP 2 · Natural environment',id:'MYP 2 · Lingkungan alam'}, idea:{en:'Living with Nature',id:'Hidup bersama Alam'}},
+  3:{name:{en:'MYP 3 · Hazards and resilience',id:'MYP 3 · Bahaya alam dan ketahanan'}, idea:{en:'Resilient Together',id:'Tangguh Bersama'}},
+  4:{name:{en:'MYP 4 · Journeys and homes',id:'MYP 4 · Perjalanan dan rumah'}, idea:{en:'Journeys and Homes',id:'Perjalanan dan Rumah'}}
+};
+
+var STOPS = [
+ {id:'6A',myp:1,title:'Peta Maritim Nusantara',titleEn:'Maritime Map of the Archipelago',place:'Sulawesi Selatan',room:null,
+  ask:{en:'What does the sea tell us about how people in South Sulawesi lived and travelled?',id:'Apa yang laut ceritakan tentang cara hidup dan perjalanan orang Sulawesi Selatan?'}},
+ {id:'6B',myp:1,title:'Peta Rempah Nusantara',titleEn:'Spice Map of the Archipelago',place:'Maluku',room:null,
+  ask:{en:'Why did spices from Maluku matter to people so far away?',id:'Mengapa rempah dari Maluku begitu penting bagi orang di tempat yang jauh?'}},
+ {id:'6C',myp:1,title:'Peta Tenun Nusantara',titleEn:'Weaving Map of the Archipelago',place:'Sumatera · Jawa · NTT',room:null,
+  ask:{en:'What does this woven pattern tell us about the people who made it?',id:'Apa yang dikatakan motif tenun ini tentang orang yang membuatnya?'}},
+ {id:'7A',myp:2,title:'Savana',titleEn:'Savanna',place:'NTT',room:null,
+  acts:['museum','diorama','guess','wall'],
+  pairs:[{en:'NTT & Tanzania',id:'NTT & Tanzania'},{en:'NTT & India',id:'NTT & India'},{en:'NTT & Australia',id:'NTT & Australia'},{en:'NTT & Colombia',id:'NTT & Kolombia'}],
+  ask:{en:'How do people in NTT live with the dry savanna, and what is different in the places it is compared with?',id:'Bagaimana orang NTT hidup bersama savana yang kering, dan apa bedanya di tempat pembandingnya?'}},
+ {id:'7B',myp:2,title:'Hutan Hujan',titleEn:'Rainforest',place:'Kalimantan Tengah',room:null,
+  acts:['museum','diorama','guess','wall'],
+  pairs:[{en:'Central Kalimantan & Colombia',id:'Kalimantan Tengah & Kolombia'},{en:'Central Kalimantan & Congo',id:'Kalimantan Tengah & Kongo'},{en:'Central Kalimantan & Australia',id:'Kalimantan Tengah & Australia'},{en:'Central Kalimantan & Malaysia',id:'Kalimantan Tengah & Malaysia'}],
+  ask:{en:'How do people in Central Kalimantan live with the rainforest, and what is different elsewhere?',id:'Bagaimana orang Kalimantan Tengah hidup bersama hutan hujan, dan apa bedanya di tempat lain?'}},
+ {id:'8A',myp:3,title:'Tangguh Bersama',titleEn:'Resilient Together',place:'',room:null,
+  acts:['museumD','hazard','guess','wall'],hz:{en:'Earthquakes & tsunamis',id:'Gempa bumi & tsunami'},
+  ask:{en:'How did people in West Sumatra and in Japan learn to get ready for earthquakes and tsunamis?',id:'Bagaimana orang Sumatera Barat dan Jepang belajar bersiap menghadapi gempa bumi dan tsunami?'}},
+ {id:'8B',myp:3,title:'Tangguh Bersama',titleEn:'Resilient Together',place:'',room:null,
+  acts:['museumD','hazard','guess','wall'],hz:{en:'Earthquake & typhoon',id:'Gempa bumi & topan'},
+  ask:{en:'How do people in Yogyakarta and in the Philippines get ready for earthquakes and typhoons?',id:'Bagaimana orang Yogyakarta dan Filipina bersiap menghadapi gempa bumi dan topan?'}},
+ {id:'9A',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}},
+ {id:'9B',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}},
+ {id:'9C',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}}
+];
+STOPS.forEach(function(s,i){ s.n=i; s.letter = i<LETTERS.length ? LETTERS[i] : null; });
+
+/* Map positions (port = phone portrait) */
+var POS = {
+ port:{vb:[600,820],hall:[95,750],
+   '6A':[170,640],'6B':[330,600],'6C':[470,520],'7A':[400,420],'7B':[230,380],'8A':[110,280],'8B':[250,195],'9A':[385,95],'9B':[505,150],'9C':[515,285],
+   islands:{1:[320,620,205,100,-8],2:[315,400,160,85,-5],3:[180,240,135,115,0],4:[460,175,160,140,10]}, compass:[535,750]}
+};
+
+/* ============================================================
+   BACKEND CONFIG
+   Paste your Apps Script Web App URL after deploying.
+   Leave empty to run fully offline (progress only on this phone).
+   ============================================================ */
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjAYAEgFV6zUsH-bDDDy21e-LdjTbGURQ2unmJQ2Dx3yWHirvsHxHTIpvBDxQQRa2XnA/exec';   // e.g. 'https://script.google.com/macros/s/AKfycbwjAYAEgFV6zUsH-bDDDy21e-LdjTbGURQ2unmJQ2Dx3yWHirvsHxHTIpvBDxQQRa2XnA/exec'
+var EVENT_TOKEN = 'myp-visioners-2026';  // simple shared secret, change it
+
+/* ============================================================
+   TEXTS
+   ============================================================ */
+var T = {
+ en:{
+  kicker:'VISit the World · MYP · '+EVENT.date,
+  title:'Cultural Expedition',
+  loginLede:'Enter your details to start collecting letters with your child.',
+  parent:'Your name (parent)', child:'Child\'s name', grade:'Child\'s grade', classLbl:'Class',
+  start:'Start expedition', loginHint:'Progress is saved on this phone. Optional cloud sync when configured.',
+  loginFoot:'Draft for staff review · Details from I&S teachers',
+  greet:function(p,c,g){return 'Hi '+p+' — exploring with '+c+' (Grade '+g+')';},
+  letters:'Letters collected', rule:'Answer the booklet question at each class. A student will confirm your answer with a password.',
+  done:'You spelled VISIONERS! Thank you for exploring with us.',
+  p1:'Watch', p1d:'Your child\'s grade performs', p2:'Explore', p2d:'Visit classes while others perform',
+  byGrade:'by grade', grade:'Grade', watchAt:'Watch your child', freeAt:'Free to explore while these grades perform',
+  slots:'Performance times', slotsNote:'Each class performs ~10 min. Times are draft.',
+  next:'Suggested next', go:'Go', allDone:'All letters collected!',
+  explore:'Explore map', leaderboard:'Leaderboard', home:'Home',
+  all:'All', remaining:'Not yet', hint:'Any order works. Dotted line = suggested route.',
+  list:'All stops', place:'Place', see:'What you will see', cultures:'Cultures compared', hazardLbl:'Hazards',
+  ask:'Booklet question', roomTbd:'Room TBC', soon:'Details coming soon.',
+  boothNote:'Each class has booths. You only need the answer to the question.',
+  yourAnswer:'Your answer (optional notes)', handPhone:'Hand the phone to a student',
+  studentPass:'Student confirmation password', confirm:'Confirm & unlock letter',
+  collected:'Letter collected!', undo:'Undo (staff only)', letterAt:'Letter',
+  wrongPass:'Wrong password. Ask a student to try again.', needAnswer:'Please write something first (or ask student to confirm).',
+  already:'Already collected', prev:'Previous', nextBtn:'Next',
+  lbTitle:'Leaderboard', lbLede:'Most letters collected (live when cloud is on).',
+  lbLoading:'Loading…', lbEmpty:'No data yet — be the first!', lbNote:'Shows parent + child. Refreshes automatically.',
+  lbLetters:'letters', lbYou:'You',
+  saved:'Saved on this phone only.', reset:'Reset my progress', resetSure:'Tap again to clear',
+  syncOn:'Cloud sync on', syncOff:'Offline mode', syncErr:'Sync error — still saved locally',
+  of:'of', stopWord:'Stop', mark:'Not collected', back:'Back',
+  startVenue:'START', venue:'Performance venue', venueSub:'Watch your child\'s class first if you can.'
+ },
+ id:{
+  kicker:'VISit the World · MYP · '+EVENT.date,
+  title:'Ekspedisi Budaya',
+  loginLede:'Masukkan data Anda untuk mulai mengumpulkan huruf bersama anak.',
+  parent:'Nama Anda (orang tua)', child:'Nama anak', grade:'Kelas anak', classLbl:'Kelas',
+  start:'Mulai ekspedisi', loginHint:'Kemajuan tersimpan di ponsel ini. Sinkronisasi cloud opsional.',
+  loginFoot:'Draf untuk ditinjau guru · Detail dari guru I&S',
+  greet:function(p,c,g){return 'Halo '+p+' — menjelajah bersama '+c+' (Kelas '+g+')';},
+  letters:'Huruf terkumpul', rule:'Jawab pertanyaan buklet di setiap kelas. Siswa akan mengonfirmasi jawaban dengan kata sandi.',
+  done:'Anda berhasil menyusun VISIONERS! Terima kasih telah menjelajah bersama kami.',
+  p1:'Tonton', p1d:'Tingkat anak Anda tampil', p2:'Jelajahi', p2d:'Kunjungi kelas saat tingkat lain tampil',
+  byGrade:'per tingkat', grade:'Kelas', watchAt:'Tonton anak Anda', freeAt:'Bebas menjelajah saat tingkat ini tampil',
+  slots:'Jadwal penampilan', slotsNote:'Setiap kelas tampil ~10 menit. Jadwal masih draf.',
+  next:'Berikutnya', go:'Ke', allDone:'Semua huruf terkumpul!',
+  explore:'Peta jelajah', leaderboard:'Papan peringkat', home:'Beranda',
+  all:'Semua', remaining:'Belum', hint:'Urutan bebas. Garis putus-putus = rute saran.',
+  list:'Semua pemberhentian', place:'Tempat', see:'Yang akan Anda lihat', cultures:'Budaya dibanding', hazardLbl:'Bahaya alam',
+  ask:'Pertanyaan buklet', roomTbd:'Ruang segera dikonfirmasi', soon:'Detail segera menyusul.',
+  boothNote:'Setiap kelas punya booth. Cukup temukan jawaban pertanyaan.',
+  yourAnswer:'Jawaban Anda (catatan opsional)', handPhone:'Serahkan ponsel ke siswa',
+  studentPass:'Kata sandi konfirmasi siswa', confirm:'Konfirmasi & buka huruf',
+  collected:'Huruf terkumpul!', undo:'Batalkan (staf)', letterAt:'Huruf',
+  wrongPass:'Kata sandi salah. Minta siswa coba lagi.', needAnswer:'Tulis sesuatu dulu (atau minta siswa konfirmasi).',
+  already:'Sudah terkumpul', prev:'Sebelumnya', nextBtn:'Berikutnya',
+  lbTitle:'Papan peringkat', lbLede:'Huruf terbanyak (langsung jika cloud aktif).',
+  lbLoading:'Memuat…', lbEmpty:'Belum ada data — jadilah yang pertama!', lbNote:'Menampilkan orang tua + anak. Diperbarui otomatis.',
+  lbLetters:'huruf', lbYou:'Anda',
+  saved:'Hanya tersimpan di ponsel ini.', reset:'Atur ulang', resetSure:'Ketuk lagi untuk hapus',
+  syncOn:'Sinkronisasi cloud aktif', syncOff:'Mode offline', syncErr:'Gagal sinkron — tetap tersimpan lokal',
+  of:'dari', stopWord:'Pemberhentian', mark:'Belum', back:'Kembali',
+  startVenue:'MULAI', venue:'Tempat pertunjukan', venueSub:'Tonton kelas anak Anda lebih dulu jika bisa.'
+ }
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var KEY = 'visit-world-expedition-v2';
+var state = {
+  lang:'en',
+  view:'login',
+  collected:{},          // { stopId: true or ISO timestamp }
+  sel:null,
+  filter:'all',
+  user:null,             // {parent, child, grade, className, sessionId, registeredAt}
+  syncStatus:'off'       // 'on' | 'off' | 'err'
+};
+try{
+  var raw = localStorage.getItem(KEY);
+  if(raw){
+    var p = JSON.parse(raw);
+    if(p){
+      if(p.collected) state.collected = p.collected;
+      if(p.lang==='en'||p.lang==='id') state.lang = p.lang;
+      if(p.user && p.user.parent) { state.user = p.user; state.view = 'home'; }
+    }
+  }
+}catch(e){}
+
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify({lang:state.lang, collected:state.collected, user:state.user})); }catch(e){}
+}
+function t(k){ var v=T[state.lang][k]; return typeof v==='function' ? v : v; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function stopById(id){ return STOPS.filter(function(s){return s.id===id;})[0]; }
+function got(){ return STOPS.filter(function(s){return s.letter && state.collected[s.id];}).length; }
+function nextStop(){ for(var i=0;i<STOPS.length;i++){ var s=STOPS[i]; if(s.letter && !state.collected[s.id]) return s; } return null; }
+function ttl(s){ return state.lang==='en' ? s.titleEn : s.title; }
+function uid(){ return 's'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ============================================================
+   BACKEND (Google Apps Script)
+   ============================================================ */
+function api(action, payload){
+  if(!APPS_SCRIPT_URL) return Promise.resolve({ok:false, offline:true});
+  var body = Object.assign({action:action, token:EVENT_TOKEN}, payload||{});
+  return fetch(APPS_SCRIPT_URL, {
+    method:'POST',
+    mode:'cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'}, // Apps Script friendly
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); }).catch(function(){ return {ok:false, error:'network'}; });
+}
+
+function registerCloud(){
+  if(!state.user) return;
+  api('register', {
+    sessionId: state.user.sessionId,
+    parent: state.user.parent,
+    child: state.user.child,
+    grade: state.user.grade,
+    className: state.user.className||'',
+    collected: state.collected
+  }).then(function(res){
+    state.syncStatus = res && res.ok ? 'on' : (res && res.offline ? 'off' : 'err');
+    updateSyncUI();
+  });
+}
+
+function syncProgress(){
+  if(!state.user) return;
+  api('update', {
+    sessionId: state.user.sessionId,
+    collected: state.collected,
+    letters: got()
+  }).then(function(res){
+    state.syncStatus = res && res.ok ? 'on' : (res && res.offline ? 'off' : 'err');
+    updateSyncUI();
+  });
+}
+
+function fetchLeaderboard(){
+  return api('leaderboard', {}).then(function(res){
+    if(res && res.ok && Array.isArray(res.rows)) return res.rows;
+    return null;
+  });
+}
+
+function updateSyncUI(){
+  var dot = document.getElementById('sync-dot');
+  var lab = document.getElementById('sync-label');
+  if(!dot||!lab) return;
+  dot.className = 'sync-dot '+(state.syncStatus==='on'?'ok':state.syncStatus==='err'?'err':'off');
+  lab.textContent = state.syncStatus==='on' ? t('syncOn') : state.syncStatus==='err' ? t('syncErr') : t('syncOff');
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+function curve(pts){
+  var d='M'+pts[0][0]+','+pts[0][1];
+  for(var i=0;i<pts.length-1;i++){
+    var p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    var c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
+    d+=' C'+c1[0].toFixed(1)+','+c1[1].toFixed(1)+' '+c2[0].toFixed(1)+','+c2[1].toFixed(1)+' '+p2[0]+','+p2[1];
+  }
+  return d;
+}
+function mapSvg(){
+  var L=POS.port, vb=L.vb, nx=nextStop(), h='';
+  h+='<svg class="map" viewBox="0 0 '+vb[0]+' '+vb[1]+'" role="group" aria-label="Map">';
+  for(var y=60;y<vb[1];y+=80) h+='<line class="sea-line" x1="0" y1="'+y+'" x2="'+vb[0]+'" y2="'+y+'"/>';
+  for(var x=60;x<vb[0];x+=80) h+='<line class="sea-line" x1="'+x+'" y1="0" x2="'+x+'" y2="'+vb[1]+'"/>';
+  [1,2,3,4].forEach(function(g){ var o=L.islands[g]; h+='<ellipse class="island g'+g+'" cx="'+o[0]+'" cy="'+o[1]+'" rx="'+o[2]+'" ry="'+o[3]+'" transform="rotate('+o[4]+' '+o[0]+' '+o[1]+')"/>'; });
+  var c=L.compass; h+='<g aria-hidden="true"><circle class="compass" cx="'+c[0]+'" cy="'+c[1]+'" r="22"/><path class="compass" d="M'+c[0]+','+(c[1]-32)+' L'+(c[0]+6)+','+c[1]+' L'+c[0]+','+(c[1]+32)+' L'+(c[0]-6)+','+c[1]+' Z"/><text class="compass-t" x="'+c[0]+'" y="'+(c[1]-38)+'">N</text></g>';
+  var pts=[L.hall].concat(STOPS.map(function(s){return L[s.id];}));
+  h+='<path class="routeline" d="'+curve(pts)+'"/>';
+  var hp=L.hall;
+  h+='<g class="pin hall" data-id="hall" tabindex="0" role="button"><rect class="box" x="'+(hp[0]-40)+'" y="'+(hp[1]-18)+'" width="80" height="36" rx="10"/><text x="'+hp[0]+'" y="'+hp[1]+'">'+esc(t('startVenue'))+'</text></g>';
+  STOPS.forEach(function(s){
+    var p=L[s.id], on=!!(s.letter&&state.collected[s.id]), dim=false;
+    if(state.filter==='remaining') dim = !(s.letter && !state.collected[s.id]);
+    else if(state.filter!=='all') dim = String(s.myp)!==state.filter;
+    var cls='pin g'+s.myp+(on?' done':'')+(state.sel===s.id?' sel':'')+(nx&&nx.id===s.id?' next':'')+(dim?' dim':'');
+    h+='<g class="'+cls+'" data-id="'+s.id+'" tabindex="0" role="button">';
+    h+='<circle r="30" cx="'+p[0]+'" cy="'+p[1]+'" fill="transparent"/><circle class="pulse" cx="'+p[0]+'" cy="'+p[1]+'" r="22"/><circle class="selring" cx="'+p[0]+'" cy="'+p[1]+'" r="32"/>';
+    h+='<circle class="ring" cx="'+p[0]+'" cy="'+p[1]+'" r="22"/><text class="code" x="'+p[0]+'" y="'+p[1]+'">'+s.id+'</text>';
+    h+='<circle class="badge" cx="'+(p[0]+18)+'" cy="'+(p[1]-18)+'" r="11"/><text class="bl" x="'+(p[0]+18)+'" y="'+(p[1]-18)+'">'+(on?s.letter:(s.letter?'?':'–'))+'</text></g>';
+  });
+  return h+'</svg>';
+}
+
+/* ============================================================
+   RENDER HELPERS
+   ============================================================ */
+function setView(name){
+  state.view = name;
+  ['login','home','explore','stop','leaderboard'].forEach(function(v){
+    var el=document.getElementById('view-'+v);
+    if(el) el.classList.toggle('active', v===name);
+  });
+  var bn=document.getElementById('bottomnav');
+  if(bn) bn.classList.toggle('show', name!=='login' && !!state.user);
+  document.querySelectorAll('.navbtn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-nav')===name);
+  });
+  window.scrollTo(0,0);
+}
+
+function renderLogin(){
+  document.getElementById('login-kicker').textContent = t('kicker');
+  document.getElementById('login-title').textContent = t('title');
+  document.getElementById('login-lede').textContent = t('loginLede');
+  document.getElementById('lbl-parent').textContent = t('parent');
+  document.getElementById('lbl-child').textContent = t('child');
+  document.getElementById('lbl-grade').textContent = t('grade');
+  document.getElementById('lbl-class').textContent = t('classLbl');
+  document.getElementById('btn-start').textContent = t('start');
+  document.getElementById('login-hint').textContent = t('loginHint');
+  document.getElementById('login-foot').textContent = t('loginFoot');
+  document.getElementById('lang-en').setAttribute('aria-pressed', state.lang==='en');
+  document.getElementById('lang-id').setAttribute('aria-pressed', state.lang==='id');
+  var gb=document.getElementById('grade-btns');
+  gb.innerHTML = [6,7,8,9].map(function(g){
+    return '<button type="button" class="btn '+(state._tmpGrade==g?'accent':'ghost')+'" data-grade="'+g+'">'+g+'</button>';
+  }).join('');
+}
+
+function renderHome(){
+  document.getElementById('home-title').textContent = t('title');
+  var d=document.getElementById('draft-badge'); d.textContent='DRAFT'; d.hidden=!DRAFT;
+  document.querySelectorAll('[data-lang]').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-lang')===state.lang); });
+  var u=state.user;
+  document.getElementById('home-greet').textContent = t('greet')(u.parent, u.child, u.grade+(u.className?u.className:''));
+  document.getElementById('wh').textContent = t('letters');
+  var n=got(); document.getElementById('count').textContent = n+' '+t('of')+' '+N;
+  document.getElementById('tiles').innerHTML = STOPS.slice(0,N).map(function(s){
+    var on=!!state.collected[s.id];
+    return '<button type="button" class="tile'+(on?' on':'')+'" data-go="'+s.id+'">'+(on?s.letter:'')+'<small>'+s.id+'</small></button>';
+  }).join('');
+  var dn=document.getElementById('done-banner'); dn.textContent=t('done'); dn.classList.toggle('show',n===N);
+  document.getElementById('rule').textContent = t('rule');
+  document.getElementById('phases').innerHTML =
+    '<button type="button" class="phase" data-go="hall"><i>1</i><div><b>'+esc(t('p1'))+'</b><span>'+esc(t('p1d'))+'</span></div><span class="time">'+esc(u.grade?GR[u.grade][0]+'–'+GR[u.grade][1]:t('byGrade'))+'</span></button>'+
+    '<button type="button" class="phase" data-nav="explore"><i>2</i><div><b>'+esc(t('p2'))+'</b><span>'+esc(t('p2d'))+'</span></div><span class="time">08:00–10:10</span></button>';
+  var nx=nextStop();
+  var nc=document.getElementById('next-card');
+  if(nx) nc.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>'+esc(t('next'))+': <b>'+nx.id+' · '+esc(ttl(nx))+'</b></span><button type="button" class="btn accent" data-go="'+nx.id+'" style="min-height:40px;padding:8px 12px">'+esc(t('go'))+'</button></div>';
+  else nc.innerHTML = '<b>'+esc(t('allDone'))+'</b>';
+  document.getElementById('btn-explore').textContent = t('explore');
+  document.getElementById('btn-lb').textContent = t('leaderboard');
+  document.getElementById('nav-home-l').textContent = t('home');
+  document.getElementById('nav-explore-l').textContent = t('explore');
+  document.getElementById('nav-lb-l').textContent = t('leaderboard');
+  updateSyncUI();
+}
+
+function renderExplore(){
+  document.getElementById('explore-title').textContent = t('explore');
+  document.querySelectorAll('[data-lang]').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-lang')===state.lang); });
+  var fl=[['all',t('all'),null],['1','MYP1','g1'],['2','MYP2','g2'],['3','MYP3','g3'],['4','MYP4','g4'],['remaining',t('remaining'),null]];
+  document.getElementById('chips').innerHTML = fl.map(function(f){
+    return '<button type="button" class="chip '+(f[2]||'')+'" data-filter="'+f[0]+'" aria-pressed="'+(state.filter===f[0])+'">'+(f[2]?'<span class="dot"></span>':'')+esc(f[1])+'</button>';
+  }).join('');
+  document.getElementById('mapwrap').innerHTML = mapSvg();
+  document.getElementById('legend').textContent = t('hint');
+  document.getElementById('list-title').textContent = t('list');
+  document.getElementById('stoplist').innerHTML = STOPS.map(function(s){
+    var on=!!(s.letter&&state.collected[s.id]);
+    var show = state.filter==='all' || (state.filter==='remaining' ? (s.letter&&!on) : String(s.myp)===state.filter);
+    if(!show) return '';
+    return '<button type="button" class="stopitem g'+s.myp+(on?' done':'')+'" data-go="'+s.id+'"><span class="lc">'+(on?s.letter:s.id)+'</span><span class="lt"><b>'+esc(ttl(s))+'</b><span>'+s.id+' · MYP '+s.myp+(s.letter?' · '+(on?t('collected'):t('mark')):'')+'</span></span></button>';
+  }).join('');
+}
+
+function renderStop(){
+  var s = stopById(state.sel);
+  if(!s){ setView('explore'); return; }
+  document.getElementById('stop-top-title').textContent = s.id;
+  var lg=state.lang, on=!!(s.letter&&state.collected[s.id]), z=ZONE[s.myp];
+  var h='';
+  h+='<span class="tag g'+s.myp+'"><i></i>'+esc(z.name[lg])+'</span>';
+  h+='<h2>'+esc(s.id)+' · '+esc(ttl(s))+'</h2>';
+  if(lg==='en'&&s.title!==s.titleEn) h+='<p class="sub">'+esc(s.title)+'</p>';
+  if(lg==='id'&&s.title!==s.titleEn) h+='<p class="sub">'+esc(s.titleEn)+'</p>';
+  if(z.idea[lg]!==ttl(s)) h+='<p class="sub">'+esc(z.idea[lg])+'</p>';
+  h+='<p class="muted" style="font-size:13px"><b>'+esc(t('place'))+':</b> '+esc(s.place||'—')+' · '+esc(s.room||t('roomTbd'))+'</p>';
+  if(s.soon) h+='<div class="soon">'+esc(t('soon'))+'</div>';
+  if(s.acts) h+='<div class="mt12"><h2 class="section">'+esc(t('see'))+'</h2><ul style="margin:0;padding-left:18px">'+s.acts.map(function(a){return '<li>'+esc(ACT[a][lg])+'</li>';}).join('')+'</ul></div>';
+  if(s.hz) h+='<div class="mt12"><h2 class="section">'+esc(t('hazardLbl'))+'</h2><p>'+esc(s.hz[lg])+'</p></div>';
+  if(s.pairs) h+='<div class="mt12"><h2 class="section">'+esc(t('cultures'))+'</h2><ul class="pairs">'+s.pairs.map(function(p){return '<li>'+esc(p[lg])+'</li>';}).join('')+'</ul></div>';
+  h+='<div class="askbox"><h3>'+esc(t('ask'))+'</h3>'+esc(s.ask[lg])+'</div>';
+  if(s.acts) h+='<p class="hint">'+esc(t('boothNote'))+'</p>';
+
+  if(s.letter){
+    if(on){
+      h+='<div class="confirm-box unlocked"><p style="margin:0;font-weight:700;color:var(--ok)">✓ '+esc(t('collected'))+' — <b style="font-size:22px">'+s.letter+'</b></p>';
+      h+='<p class="hint">'+esc(t('letterAt'))+' '+(s.n+1)+' '+t('of')+' '+N+'</p>';
+      h+='<button type="button" class="btn ghost mt8" data-undo="'+s.id+'" style="min-height:40px">'+esc(t('undo'))+'</button></div>';
+    } else {
+      h+='<div class="field mt12"><label for="ans">'+esc(t('yourAnswer'))+'</label><textarea id="ans" placeholder="..."></textarea></div>';
+      h+='<div class="confirm-box" id="confirm-box">';
+      h+='<p style="margin:0 0 8px;font-weight:700">'+esc(t('handPhone'))+'</p>';
+      h+='<div class="field"><label for="pass">'+esc(t('studentPass'))+'</label><input type="password" id="pass" autocomplete="off" inputmode="text"></div>';
+      h+='<button type="button" class="btn accent block" id="btn-confirm" data-confirm="'+s.id+'">'+esc(t('confirm'))+'</button>';
+      h+='<p class="status-msg" id="confirm-msg"></p></div>';
+    }
+  }
+
+  var prev=s.n>0?STOPS[s.n-1]:null, nxt=s.n<STOPS.length-1?STOPS[s.n+1]:null;
+  h+='<div class="btn-row mt12">';
+  h+='<button type="button" class="btn ghost" data-go="'+(prev?prev.id:'')+'" '+(prev?'':'disabled')+'>← '+(prev?prev.id:t('prev'))+'</button>';
+  h+='<button type="button" class="btn ghost" data-go="'+(nxt?nxt.id:'')+'" '+(nxt?'':'disabled')+'>'+(nxt?nxt.id+' →':t('nextBtn'))+'</button>';
+  h+='</div>';
+  document.getElementById('stop-panel').innerHTML = h;
+}
+
+function renderLeaderboard(){
+  document.getElementById('lb-title').textContent = t('lbTitle');
+  document.getElementById('lb-lede').textContent = t('lbLede');
+  document.getElementById('lb-note').textContent = t('lbNote');
+  var body=document.getElementById('lb-body');
+  body.innerHTML = '<p class="center muted">'+esc(t('lbLoading'))+'</p>';
+  fetchLeaderboard().then(function(rows){
+    if(!rows){
+      // offline / mock from local only
+      if(!APPS_SCRIPT_URL){
+        var me = state.user ? [{
+          parent: state.user.parent, child: state.user.child, grade: state.user.grade,
+          letters: got(), last: Object.values(state.collected).filter(Boolean).sort().pop()||''
+        }] : [];
+        rows = me;
+        body.innerHTML = '<p class="hint center">'+esc(t('syncOff'))+' — showing only you</p>';
+      } else {
+        body.innerHTML = '<p class="center muted">'+esc(t('lbEmpty'))+'</p>';
+        return;
+      }
+    }
+    if(!rows.length){ body.innerHTML = '<p class="center muted">'+esc(t('lbEmpty'))+'</p>'; return; }
+    rows.sort(function(a,b){ return (b.letters||0)-(a.letters||0) || String(a.last||'').localeCompare(String(b.last||'')); });
+    var html = rows.slice(0,30).map(function(r,i){
+      var isYou = state.user && r.sessionId===state.user.sessionId;
+      return '<div class="lb-row'+(isYou?' you':'')+'"><span class="lb-rank'+(i<3?' top':'')+'">'+(i+1)+'</span><div class="lb-info"><b>'+esc(r.parent)+(r.child?' & '+esc(r.child):'')+(isYou?' ('+t('lbYou')+')':'')+'</b><span>Grade '+(r.grade||'?')+(r.className||'')+'</span></div><span class="lb-score">'+(r.letters||0)+'</span></div>';
+    }).join('');
+    body.innerHTML = (body.innerHTML.startsWith('<p class="hint')?body.innerHTML:'')+html;
+  });
+}
+
+function render(){
+  document.documentElement.lang = state.lang;
+  if(state.view==='login') renderLogin();
+  else if(state.view==='home') renderHome();
+  else if(state.view==='explore') renderExplore();
+  else if(state.view==='stop') renderStop();
+  else if(state.view==='leaderboard') renderLeaderboard();
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-nav],[data-go],[data-filter],[data-grade],[data-lang],[data-confirm],[data-undo],#btn-start,#lang-en,#lang-id,#btn-refresh-lb,.pin');
+  if(!el) return;
+
+  if(el.id==='lang-en'||el.id==='lang-id'||el.hasAttribute('data-lang')){
+    state.lang = el.id==='lang-id'||el.getAttribute('data-lang')==='id' ? 'id' : 'en';
+    save(); render(); return;
+  }
+  if(el.hasAttribute('data-grade')){
+    state._tmpGrade = +el.getAttribute('data-grade');
+    var cf=document.getElementById('class-field'), sel=document.getElementById('in-class');
+    var opts = CLASSES[state._tmpGrade]||[];
+    if(opts.length){
+      cf.style.display='block';
+      sel.innerHTML = opts.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+    } else cf.style.display='none';
+    renderLogin(); return;
+  }
+  if(el.id==='btn-start'){
+    var parent=(document.getElementById('in-parent').value||'').trim();
+    var child=(document.getElementById('in-child').value||'').trim();
+    var grade=state._tmpGrade;
+    var className=(document.getElementById('in-class').value||'').trim();
+    if(!parent||!child||!grade){ alert(state.lang==='id'?'Lengkapi nama dan kelas.':'Please fill name and grade.'); return; }
+    state.user = {parent:parent, child:child, grade:grade, className:className, sessionId:uid(), registeredAt:new Date().toISOString()};
+    state.view='home'; save(); registerCloud(); setView('home'); render(); return;
+  }
+  if(el.hasAttribute('data-nav')){
+    var v=el.getAttribute('data-nav');
+    setView(v); render(); return;
+  }
+  if(el.hasAttribute('data-filter')){
+    state.filter=el.getAttribute('data-filter'); renderExplore(); return;
+  }
+  if(el.hasAttribute('data-go')){
+    var id=el.getAttribute('data-go');
+    if(!id) return;
+    if(id==='hall'){ /* show schedule on home for now */ setView('home'); render(); return; }
+    state.sel=id; setView('stop'); render(); return;
+  }
+  if(el.classList.contains('pin')){
+    var id=el.getAttribute('data-id');
+    if(id==='hall'){ setView('home'); render(); return; }
+    state.sel=id; setView('stop'); render(); return;
+  }
+  if(el.hasAttribute('data-confirm')){
+    var sid=el.getAttribute('data-confirm');
+    var pass=(document.getElementById('pass').value||'').trim();
+    var msg=document.getElementById('confirm-msg');
+    if(pass.toUpperCase()!==CONFIRM_PASSWORD.toUpperCase()){
+      msg.textContent=t('wrongPass'); msg.className='status-msg err'; return;
+    }
+    state.collected[sid]=new Date().toISOString();
+    save(); syncProgress(); renderStop();
+    // also refresh home tiles later
+    return;
+  }
+  if(el.hasAttribute('data-undo')){
+    var sid=el.getAttribute('data-undo');
+    delete state.collected[sid];
+    save(); syncProgress(); renderStop(); return;
+  }
+  if(el.id==='btn-refresh-lb'){ renderLeaderboard(); return; }
+});
+
+/* auto-poll leaderboard when visible */
+setInterval(function(){
+  if(state.view==='leaderboard' && APPS_SCRIPT_URL) renderLeaderboard();
+}, 20000);
+
+/* init */
+if(state.user){ setView('home'); registerCloud(); }
+render();
+</script>
+</body>
+</html>
