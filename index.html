@@ -9,8 +9,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
 <style>
+/* Logo helpers */
+.app-logo-top {
+  display: block;
+  max-height: 40px;
+  width: auto;
+         /* login page centering */
+}
+.topbar .app-logo-top {
+  margin: 0 8px 0 0;            /* sit next to title in topbar */
+  max-height: 32px;
+  flex-shrink: 0;
+}
+.app-logo-bottom {
+  display: block;
+  max-height: 80px;
+  width: auto;
+  margin-left: auto;
+  margin-right: 0;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+.login-logo-wrap {
+  text-align: left;
+  padding-top: 8px;
+  padding-left: 0;
+}
+
 :root{
-  --bg:#F2F5F9; --surface:#FFFFFF; --surface-2:#E9EEF4; --ink:#1B2733; --muted:#58657A; --line:#CBD5E1;
+  --bg:#143b6d; --surface:#FFFFFF; --surface-2:#E9EEF4; --ink:#1B2733; --muted:#58657A; --line:#CBD5E1;
   --navy:#24384F; --accent:#EF820C; --accent-ink:#1B2733; --accent-soft:#FDEBD3;
   --sea:#DCE8F2; --sea-line:#BFD0E0; --route:#24384F;
   --g1:#1F8F8C; --g2:#5E9A32; --g3:#C4533F; --g4:#6657B8;
@@ -23,7 +50,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0D1724; --surface:#15253A; --surface-2:#1C3049; --ink:#E8EEF5; --muted:#9FB0C4; --line:#2B405A;
+    --bg:#010322; --surface:#15253A; --surface-2:#1C3049; --ink:#E8EEF5; --muted:#9FB0C4; --line:#2B405A;
     --navy:#9DB8D6; --accent:#F79A2F; --accent-ink:#13202F; --accent-soft:#3A2C17;
     --sea:#0F2033; --sea-line:#1C3550; --route:#C8D8EA;
     --g1:#45C2BE; --g2:#8CC55E; --g3:#E5806C; --g4:#9A8CE6; --ok:#45C2BE; --danger:#E5806C;
@@ -53,7 +80,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 
 /* Top bar */
 .topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + var(--safe-t));
-  background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  background:#0577c4;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
 .topbar h1{font-size:17px;font-weight:800;margin:0;flex:1;line-height:1.2}
 .topbar .back{border:0;background:var(--surface-2);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;cursor:pointer}
 .tools{display:flex;gap:6px;align-items:center}
@@ -213,6 +240,9 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
   <!-- LOGIN VIEW -->
   <div id="view-login" class="view active">
     <div class="view-scroll">
+      <div class="login-logo-wrap">
+  <img class="app-logo-top" src="https://raw.githubusercontent.com/avrianpradiptya/Koleksi_Gambar/refs/heads/main/vis_kelapa_gading-removebg-preview.png" alt="School / Event logo">
+</div>
       <div style="padding-top:12px">
         <p class="kicker" id="login-kicker"></p>
         <h1 style="font-size:28px;font-weight:800;margin:0 0 6px" id="login-title"></h1>
@@ -251,6 +281,7 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
   <!-- HOME VIEW -->
   <div id="view-home" class="view">
     <div class="topbar">
+      <img class="app-logo-top" src="https://raw.githubusercontent.com/avrianpradiptya/Koleksi_Gambar/refs/heads/main/vis_logo_white_letter.png" alt="Logo">
       <h1 id="home-title"></h1>
       <div class="tools">
         <span class="draft" id="draft-badge" hidden></span>
@@ -278,6 +309,7 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
         <button type="button" class="btn ghost" data-nav="leaderboard" id="btn-lb"></button>
       </div>
       <p class="foot-note"><span class="sync-dot" id="sync-dot"></span><span id="sync-label"></span></p>
+      
     </div>
   </div>
 
@@ -343,7 +375,7 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
       <div class="card hidden" id="fb-thanks"></div>
     </div>
   </div>
-
+<img class="app-logo-bottom" src="https://raw.githubusercontent.com/avrianpradiptya/Koleksi_Gambar/refs/heads/main/VISit.png" alt="Event logo">
   <!-- Bottom nav -->
   <nav class="bottomnav" id="bottomnav">
     <button type="button" class="navbtn" data-nav="home" id="nav-home">
