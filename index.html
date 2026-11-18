@@ -185,6 +185,9 @@ svg.map{width:100%;height:auto;display:block;border-radius:10px;background:var(-
 .panel .sub{margin:0 0 8px;color:var(--muted);font-size:14px}
 .askbox{background:var(--accent-soft);border-radius:12px;padding:12px;margin:12px 0}
 .askbox h3{margin:0 0 6px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.stop-media{margin:12px 0;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
+.stop-media img,.stop-media video{display:block;width:100%;height:auto;max-height:240px;object-fit:cover;background:#000}
+.stop-media .cap{font-size:12px;color:var(--muted);padding:8px 12px;margin:0}
 .pairs{display:grid;grid-template-columns:1fr 1fr;gap:6px;list-style:none;padding:0;margin:0}
 .pairs li{background:var(--surface-2);border-radius:8px;padding:8px;font-weight:600;font-size:13px}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;list-style:none;padding:0;margin:0}
@@ -451,33 +454,46 @@ var ZONE = {
   4:{name:{en:'MYP 4 · Journeys and homes',id:'MYP 4 · Perjalanan dan rumah'}, idea:{en:'Journeys and Homes',id:'Perjalanan dan Rumah'}}
 };
 
+/* Optional media on a stop:
+   media: { type:'image'|'video', url:'https://...', caption:{en:'...', id:'...'} }
+   Omit media entirely when a stop has none. Replace the placeholder URLs with real files later. */
 var STOPS = [
  {id:'6A',myp:1,title:'Peta Maritim Nusantara',titleEn:'Maritime Map of the Archipelago',place:'Sulawesi Selatan',room:null,
-  ask:{en:'What does the sea tell us about how people in South Sulawesi lived and travelled?',id:'Apa yang laut ceritakan tentang cara hidup dan perjalanan orang Sulawesi Selatan?'}},
+  ask:{en:'What does the sea tell us about how people in South Sulawesi lived and travelled?',id:'Apa yang laut ceritakan tentang cara hidup dan perjalanan orang Sulawesi Selatan?'},
+  media:{type:'image',url:'https://picsum.photos/seed/maritime6A/800/500.jpg',caption:{en:'Maritime routes of the archipelago (placeholder)',id:'Rute maritim Nusantara (placeholder)'}}},
  {id:'6B',myp:1,title:'Peta Rempah Nusantara',titleEn:'Spice Map of the Archipelago',place:'Maluku',room:null,
-  ask:{en:'Why did spices from Maluku matter to people so far away?',id:'Mengapa rempah dari Maluku begitu penting bagi orang di tempat yang jauh?'}},
+  ask:{en:'Why did spices from Maluku matter to people so far away?',id:'Mengapa rempah dari Maluku begitu penting bagi orang di tempat yang jauh?'},
+  media:{type:'image',url:'https://picsum.photos/seed/spice6B/800/500.jpg',caption:{en:'Spice trade map (placeholder)',id:'Peta jalur rempah (placeholder)'}}},
  {id:'6C',myp:1,title:'Peta Tenun Nusantara',titleEn:'Weaving Map of the Archipelago',place:'Sumatera · Jawa · NTT',room:null,
-  ask:{en:'What does this woven pattern tell us about the people who made it?',id:'Apa yang dikatakan motif tenun ini tentang orang yang membuatnya?'}},
+  ask:{en:'What does this woven pattern tell us about the people who made it?',id:'Apa yang dikatakan motif tenun ini tentang orang yang membuatnya?'},
+  media:{type:'image',url:'https://picsum.photos/seed/tenun6C/800/500.jpg',caption:{en:'Woven textile pattern (placeholder)',id:'Motif tenun (placeholder)'}}},
  {id:'7A',myp:2,title:'Savana',titleEn:'Savanna',place:'NTT',room:null,
   acts:['museum','diorama','guess','wall'],
   pairs:[{en:'NTT & Tanzania',id:'NTT & Tanzania'},{en:'NTT & India',id:'NTT & India'},{en:'NTT & Australia',id:'NTT & Australia'},{en:'NTT & Colombia',id:'NTT & Kolombia'}],
-  ask:{en:'How do people in NTT live with the dry savanna, and what is different in the places it is compared with?',id:'Bagaimana orang NTT hidup bersama savana yang kering, dan apa bedanya di tempat pembandingnya?'}},
+  ask:{en:'How do people in NTT live with the dry savanna, and what is different in the places it is compared with?',id:'Bagaimana orang NTT hidup bersama savana yang kering, dan apa bedanya di tempat pembandingnya?'},
+  media:{type:'image',url:'https://picsum.photos/seed/savanna7A/800/500.jpg',caption:{en:'NTT savanna landscape (placeholder)',id:'Lanskap savana NTT (placeholder)'}}},
  {id:'7B',myp:2,title:'Hutan Hujan',titleEn:'Rainforest',place:'Kalimantan Tengah',room:null,
   acts:['museum','diorama','guess','wall'],
   pairs:[{en:'Central Kalimantan & Colombia',id:'Kalimantan Tengah & Kolombia'},{en:'Central Kalimantan & Congo',id:'Kalimantan Tengah & Kongo'},{en:'Central Kalimantan & Australia',id:'Kalimantan Tengah & Australia'},{en:'Central Kalimantan & Malaysia',id:'Kalimantan Tengah & Malaysia'}],
-  ask:{en:'How do people in Central Kalimantan live with the rainforest, and what is different elsewhere?',id:'Bagaimana orang Kalimantan Tengah hidup bersama hutan hujan, dan apa bedanya di tempat lain?'}},
+  ask:{en:'How do people in Central Kalimantan live with the rainforest, and what is different elsewhere?',id:'Bagaimana orang Kalimantan Tengah hidup bersama hutan hujan, dan apa bedanya di tempat lain?'},
+  media:{type:'image',url:'https://picsum.photos/seed/rainforest7B/800/500.jpg',caption:{en:'Rainforest canopy (placeholder)',id:'Kanopi hutan hujan (placeholder)'}}},
  {id:'8A',myp:3,title:'Tangguh Bersama',titleEn:'Resilient Together',place:'',room:null,
   acts:['museumD','hazard','guess','wall'],hz:{en:'Earthquakes & tsunamis',id:'Gempa bumi & tsunami'},
-  ask:{en:'How did people in West Sumatra and in Japan learn to get ready for earthquakes and tsunamis?',id:'Bagaimana orang Sumatera Barat dan Jepang belajar bersiap menghadapi gempa bumi dan tsunami?'}},
+  ask:{en:'How did people in West Sumatra and in Japan learn to get ready for earthquakes and tsunamis?',id:'Bagaimana orang Sumatera Barat dan Jepang belajar bersiap menghadapi gempa bumi dan tsunami?'},
+  media:{type:'image',url:'https://picsum.photos/seed/quake8A/800/500.jpg',caption:{en:'Preparedness drill (placeholder)',id:'Latihan kesiapsiagaan (placeholder)'}}},
  {id:'8B',myp:3,title:'Tangguh Bersama',titleEn:'Resilient Together',place:'',room:null,
   acts:['museumD','hazard','guess','wall'],hz:{en:'Earthquake & typhoon',id:'Gempa bumi & topan'},
-  ask:{en:'How do people in Yogyakarta and in the Philippines get ready for earthquakes and typhoons?',id:'Bagaimana orang Yogyakarta dan Filipina bersiap menghadapi gempa bumi dan topan?'}},
+  ask:{en:'How do people in Yogyakarta and in the Philippines get ready for earthquakes and typhoons?',id:'Bagaimana orang Yogyakarta dan Filipina bersiap menghadapi gempa bumi dan topan?'},
+  media:{type:'image',url:'https://picsum.photos/seed/typhoon8B/800/500.jpg',caption:{en:'Storm readiness (placeholder)',id:'Kesiapan menghadapi badai (placeholder)'}}},
  {id:'9A',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
-  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}},
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'},
+  media:{type:'image',url:'https://picsum.photos/seed/journey9A/800/500.jpg',caption:{en:'Journey and home (placeholder)',id:'Perjalanan dan rumah (placeholder)'}}},
  {id:'9B',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
-  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}},
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'},
+  media:{type:'image',url:'https://picsum.photos/seed/journey9B/800/500.jpg',caption:{en:'Journey and home (placeholder)',id:'Perjalanan dan rumah (placeholder)'}}},
  {id:'9C',myp:4,title:'Perjalanan dan Rumah',titleEn:'Journeys and Homes',place:'',room:null,soon:true,
-  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'}}
+  ask:{en:'Whose journey is shown here, and what did they carry with them?',id:'Perjalanan siapa yang ditampilkan di sini, dan apa yang mereka bawa?'},
+  media:{type:'image',url:'https://picsum.photos/seed/journey9C/800/500.jpg',caption:{en:'Journey and home (placeholder)',id:'Perjalanan dan rumah (placeholder)'}}}
 ];
 STOPS.forEach(function(s,i){ s.n=i; s.letter = i<LETTERS.length ? LETTERS[i] : null; });
 
@@ -806,6 +822,19 @@ function renderStop(){
   if(s.hz) h+='<div class="mt12"><h2 class="section">'+esc(t('hazardLbl'))+'</h2><p>'+esc(s.hz[lg])+'</p></div>';
   if(s.pairs) h+='<div class="mt12"><h2 class="section">'+esc(t('cultures'))+'</h2><ul class="pairs">'+s.pairs.map(function(p){return '<li>'+esc(p[lg])+'</li>';}).join('')+'</ul></div>';
   h+='<div class="askbox"><h3>'+esc(t('ask'))+'</h3>'+esc(s.ask[lg])+'</div>';
+  if(s.media && s.media.url){
+    h+='<div class="stop-media">';
+    if(s.media.type==='video'){
+      h+='<video src="'+esc(s.media.url)+'" controls playsinline preload="metadata"></video>';
+    } else {
+      h+='<img src="'+esc(s.media.url)+'" alt="" loading="lazy">';
+    }
+    if(s.media.caption){
+      var cap = (typeof s.media.caption==='object') ? (s.media.caption[lg]||s.media.caption.en||'') : s.media.caption;
+      if(cap) h+='<p class="cap">'+esc(cap)+'</p>';
+    }
+    h+='</div>';
+  }
   if(s.acts) h+='<p class="hint">'+esc(t('boothNote'))+'</p>';
 
   if(s.letter){
